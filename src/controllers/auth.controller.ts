@@ -1,26 +1,84 @@
 import { Request, Response } from "express";
-import { isEmailAllReadyExist, NewUser } from "../services/auth.service";
+import { User } from "../models/user.model";
+import jwt from "jsonwebtoken";
 
 export const Register = async (req: Request, res: Response) => {
   try {
     const user = req.body;
-    const { name, email, password } = user;
-    const checkEmail = isEmailAllReadyExist(email);
-    if (checkEmail) {
+    const { username, email, password } = user;
+
+    const isEmailAlreadyExist = await User.findOne({
+      email: email,
+    });
+    if (isEmailAlreadyExist) {
       res.status(400).json({
         // 400 Code means Bad Request
         status: 400,
-        message: "Email all ready in use",
+        message: "Email already in use",
       });
       return;
     }
-    const newUser = NewUser(email, name, password);
-    res.status(200).json({
-      // 200 means Success
-      status: 201, // 201 means Successfully Created
+
+    const newUser = await User.create({
+      username,
+      email,
+      password,
+    });
+    res.status(201).json({
+      // 201 means Successfully Created
       success: true,
-      message: " User created Successfully",
+      message: "User created successfully",
       user: newUser,
+    });
+  } catch (error: any) {
+    console.log(error);
+    res.status(400).json({
+      status: 400,
+      message: error.message.toString(),
+    });
+  }
+};
+export const Login = async (req: Request, res: Response) => {
+  try {
+    const user = req.body;
+    const { username, password } = user;
+
+    const isUserAlreadyExist = await User.findOne({
+      username: username,
+    });
+    if (!isUserAlreadyExist) {
+      res.status(400).json({
+        // 400 Code means Bad Request
+        status: 400,
+        message: "User has not Registered yet",
+      });
+      return;
+    }
+    const isPasswordMatched = await User.findOne({
+      password: password,
+    });
+    if (!isPasswordMatched) {
+      res.status(400).json({
+        // 400 Code means Bad Request
+        status: 400,
+        message: "Wrong Password",
+      });
+      return;
+    }
+    const token = jwt.sign(
+      { _id: isUserAlreadyExist?._id, email: isUserAlreadyExist?.email },
+      process.env.SECRET_KEY as string,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    // send the response
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "login success",
+      token: token,
     });
   } catch (error: any) {
     console.log(error);
