@@ -1,4 +1,6 @@
+import { connectToDatabase } from "./db-connection";
 import express from "express";
+import { authRouter } from "./routes/auth.route";
 
 const app = express();
 
@@ -9,7 +11,11 @@ app.get("/", (_, response) => {
   response.status(200).send("Server is up and running 💫");
 });
 
+app.use("/auth", authRouter);
+
 const PORT = 4000;
 app.listen(PORT, () => {
   console.log(`Express is running on Port ${PORT}`);
 });
+
+connectToDatabase();
