@@ -1,23 +1,27 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import jwt from "jsonwebtoken";
+import { HashPassword } from "../services/auth.service";
+import bcrypt from "bcrypt";
 
 export const Register = async (req: Request, res: Response) => {
   try {
     const user = req.body;
-    const { username, email, password } = user;
+    var { username, email, password } = user;
 
     const isEmailAlreadyExist = await User.findOne({
       email: email,
     });
     if (isEmailAlreadyExist) {
       res.status(400).json({
-        // 400 Code means Bad Request
         status: 400,
         message: "Email already in use",
       });
       return;
     }
+
+    // Await the hashed password
+    password = await HashPassword(password);
 
     const newUser = await User.create({
       username,
@@ -25,7 +29,7 @@ export const Register = async (req: Request, res: Response) => {
       password,
     });
     res.status(201).json({
-      // 201 means Successfully Created
+      status: 201,
       success: true,
       message: "User created successfully",
       user: newUser,
@@ -38,10 +42,11 @@ export const Register = async (req: Request, res: Response) => {
     });
   }
 };
+
 export const Login = async (req: Request, res: Response) => {
   try {
     const user = req.body;
-    const { username, password } = user;
+    var { username, password } = user;
 
     const isUserAlreadyExist = await User.findOne({
       username: username,
@@ -54,9 +59,11 @@ export const Login = async (req: Request, res: Response) => {
       });
       return;
     }
-    const isPasswordMatched = await User.findOne({
-      password: password,
-    });
+
+    const isPasswordMatched = await bcrypt.compare(
+      password,
+      isUserAlreadyExist.password
+    );
     if (!isPasswordMatched) {
       res.status(400).json({
         // 400 Code means Bad Request
