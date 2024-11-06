@@ -80,6 +80,9 @@ export const Login = async (req: Request, res: Response) => {
       }
     );
 
+    isUserAlreadyExist.tokens.push({ token });
+    await isUserAlreadyExist.save();
+
     // send the response
     res.status(200).json({
       status: 200,

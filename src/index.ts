@@ -1,8 +1,8 @@
 import { connectToDatabase } from "./db-connection";
 import express from "express";
 import { authRouter } from "./routes/auth.route";
-import bookRoutes from './routes/book.route';
-
+import bookRoutes from "./routes/book.route";
+import { Verification } from "./middleware/auth";
 
 const app = express();
 
@@ -14,8 +14,7 @@ app.get("/", (_, response) => {
 });
 
 app.use("/auth", authRouter);
-app.use('/books', bookRoutes);
-
+app.use("/book", Verification, bookRoutes);
 
 const PORT = 4000;
 app.listen(PORT, () => {
