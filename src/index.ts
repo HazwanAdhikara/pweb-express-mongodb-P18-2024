@@ -10,8 +10,14 @@ app.use(express.json());
 
 // check endpoint
 app.get("/", (_, response) => {
-  response.status(200).send("Server is up and running 💫");
+  const date = new Date().toDateString();  // Mengambil tanggal saat ini
+  response.status(200).json({
+    status: "success",
+    message: "Server is up and running 💫",
+    date: date
+  });
 });
+
 
 app.use("/auth", authRouter);
 app.use("/book", Verification, bookRoutes);
