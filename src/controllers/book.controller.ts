@@ -1,31 +1,29 @@
 import { Request, Response } from 'express';
-import Book from '../models/book.model';
+import * as BookService from '../services/book.service';
 
 // GET /book - Get all books
 export const getAllBooks = async (req: Request, res: Response) => {
   try {
-    const books = await Book.find();
+    const books = await BookService.getAllBooks();
     res.status(200).json({
       status: 'success',
       message: 'Successfully get all books',
       data: books,
     });
   } catch (error) {
-    // Type assertion to handle `error` as an instance of `Error`
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json({
       status: 'error',
       message: errorMessage,
     });
-    return;
   }
 };
 
 // GET /book/:id - Get book by ID
-export const getBookById = async (req: Request, res: Response): Promise<void> => {
+export const getBookById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const book = await Book.findById(id);
+    const book = await BookService.getBookById(id);
 
     if (!book) {
       res.status(404).json({
@@ -52,8 +50,7 @@ export const getBookById = async (req: Request, res: Response): Promise<void> =>
 // POST /book - Add new book
 export const addNewBook = async (req: Request, res: Response) => {
   try {
-    const newBook = new Book(req.body);
-    const savedBook = await newBook.save();
+    const savedBook = await BookService.addNewBook(req.body);
     res.status(201).json({
       status: 'success',
       message: 'Book added successfully',
@@ -69,18 +66,19 @@ export const addNewBook = async (req: Request, res: Response) => {
 };
 
 // PATCH /book/:id - Update book data by ID
-export const updateBookById = async (req: Request, res: Response): Promise<void> => {
+export const updateBookById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updatedData = req.body;
 
-    const updatedBook = await Book.findByIdAndUpdate(id, updatedData, { new: true });
+    const updatedBook = await BookService.updateBookById(id, updatedData);
 
     if (!updatedBook) {
       res.status(404).json({
         status: 'error',
         message: 'Book not found',
       });
+      return;
     }
 
     res.status(200).json({
@@ -98,16 +96,17 @@ export const updateBookById = async (req: Request, res: Response): Promise<void>
 };
 
 // DELETE /book/:id - Delete book by ID
-export const deleteBookById = async (req: Request, res: Response): Promise<void> => {
+export const deleteBookById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const deletedBook = await Book.findByIdAndDelete(id);
+    const deletedBook = await BookService.deleteBookById(id);
 
     if (!deletedBook) {
       res.status(404).json({
         status: 'error',
         message: 'Book not found',
       });
+      return;
     }
 
     res.status(200).json({
